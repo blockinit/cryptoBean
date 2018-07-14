@@ -11,7 +11,7 @@ module.exports = function(deployer, network, accounts) {
         })
         .then(() => {
             return deployer.deploy(
-                CryptoBeanCrowdsale
+                CryptoBeanCrowdsale,
                 rate,
                 wallet
             );
