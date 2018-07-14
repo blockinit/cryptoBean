@@ -1,5 +1,5 @@
 var CryptoBeanCrowdsale = artifacts.require("CryptoBeanCrowdsale");
-var HashnodeToken = artifacts.require("HashnodeToken");
+var CryptoBean = artifacts.require("CryptoBean");
 
 contract('CryptoBeanCrowdsale', function(accounts) {
     it('should deploy the token and store the address', function(done){
@@ -19,7 +19,7 @@ contract('CryptoBeanCrowdsale', function(accounts) {
      * 0.006666667eth = 1 coffee
      * 0.007eth == 1 CryptoBean (2.60e at time of writing)
      */
-    it.only('will 1 cryptoBean for 0.007eth', function(done){
+    it('will 1 cryptoBean for 0.007eth', function(done){
       CryptoBeanCrowdsale.deployed().then(async function(instance){
         const data = await instance.sendTransaction({ from: accounts[7], value: web3.toWei(0.007, "ether")});
         const tokenAddress = await instance.token.call();

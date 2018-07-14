@@ -1,12 +1,12 @@
 pragma solidity ^0.4.18;
 
 import './CryptoBean.sol';
-import 'zeppelin-solidity/contracts/crowdsale/emission/MintedCrowdsale.sol';
-import 'zeppelin-solidity/contracts/crowdsale/validation/TimedCrowdsale.sol';
+import './crowdsale/emission/MintedCrowdsale.sol';
+import './crowdsale/validation/TimedCrowdsale.sol';
 
 
 contract CryptoBeanCrowdsale is TimedCrowdsale, MintedCrowdsale {
-    function CryptoBeanCrowdsale
+    constructor
         (
             uint256 _openingTime,
             uint256 _closingTime,
