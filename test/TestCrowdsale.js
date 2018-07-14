@@ -19,20 +19,59 @@ contract('CryptoBeanCrowdsale', function(accounts) {
      * 0.006666667eth = 1 coffee
      * 0.007eth == 1 CryptoBean (2.60e at time of writing)
      */
-    it('will 1 cryptoBean for 0.007eth', function(done){
+    it('will 150 cryptoBean for 0.007eth', function(done){
       CryptoBeanCrowdsale.deployed().then(async function(instance){
         const tokenAddress = await instance.token.call();
         const cryptoBean = CryptoBean.at(tokenAddress);
+        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
 
         try{
-          const initPurchaserBalance = await cryptoBean.balanceOf(accounts[7]);
-          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.007, "ether"), gas: 4000000});
+          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(1, "ether"), gas: 4000000});
         }catch(e){
-          const afterPurchaserBalance = await cryptoBean.balanceOf(accounts[7]);
           return done(e);
         }
-        const tokenAmount = await cryptoBean.balanceOf(accounts[7]);
-        assert.equal(tokenAmount.toNumber(), 5000000000000000000, 'The sender didn\'t receive the tokens as per PreICO rate');
+
+        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
+          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
+        assert.equal(increaseAmount, 150, 'The sender didn\'t receive 150 cryptoBeans for 1ETH');
+        done();
+      });
+    });
+
+    it('will get 1.125 cryptoBeans for 0.0075eth', function(done){
+      CryptoBeanCrowdsale.deployed().then(async function(instance){
+        const tokenAddress = await instance.token.call();
+        const cryptoBean = CryptoBean.at(tokenAddress);
+        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
+
+        try{
+          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.0075, "ether"), gas: 4000000});
+        }catch(e){
+          return done(e);
+        }
+
+        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
+          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
+        assert.equal(increaseAmount, 1.125, 'The sender didn\'t receive 151.125 cryptoBeans');
+        done();
+      });
+    })
+
+    it('will get 1 cryptoBean for 0.007 eth', function(done){
+      CryptoBeanCrowdsale.deployed().then(async function(instance){
+        const tokenAddress = await instance.token.call();
+        const cryptoBean = CryptoBean.at(tokenAddress);
+        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
+
+        try{
+          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.0066666667, "ether"), gas: 4000000});
+        }catch(e){
+          return done(e);
+        }
+
+        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
+          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
+        assert.equal(increaseAmount, 1.000000005000004, 'The sender didn\'t receive 1 cryptoBean');
         done();
       });
     });
