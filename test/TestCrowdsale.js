@@ -21,15 +21,20 @@ contract('CryptoBeanCrowdsale', function(accounts) {
      */
     it('will 1 cryptoBean for 0.007eth', function(done){
       CryptoBeanCrowdsale.deployed().then(async function(instance){
-        const data = await instance.sendTransaction({ from: accounts[7], value: web3.toWei(0.007, "ether")});
         const tokenAddress = await instance.token.call();
         const cryptoBean = CryptoBean.at(tokenAddress);
+
+        try{
+          const initPurchaserBalance = await cryptoBean.balanceOf(accounts[7]);
+          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.007, "ether"), gas: 4000000});
+        }catch(e){
+          const afterPurchaserBalance = await cryptoBean.balanceOf(accounts[7]);
+          return done(e);
+        }
         const tokenAmount = await cryptoBean.balanceOf(accounts[7]);
-        console.log('tokenAmount: ', tokenAmount);
         assert.equal(tokenAmount.toNumber(), 5000000000000000000, 'The sender didn\'t receive the tokens as per PreICO rate');
         done();
-      })
-      done();
+      });
     });
 
     //
