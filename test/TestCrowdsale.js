@@ -2,170 +2,50 @@ var CryptoBeanCrowdsale = artifacts.require("CryptoBeanCrowdsale");
 var CryptoBean = artifacts.require("CryptoBean");
 
 contract('CryptoBeanCrowdsale', function(accounts) {
-    it('should deploy the token and store the address', function(done){
-        CryptoBeanCrowdsale.deployed().then(async function(instance) {
-            const token = await instance.token.call();
-            assert(token, 'Token address couldn\'t be stored');
-            done();
-       });
+
+  beforeEach(async function () {
+    this.crowdsale = await CryptoBeanCrowdsale.deployed();
+    this.token = CryptoBean.at(await this.crowdsale.token.call());
+  });
+
+  it('should deploy the token and store the address', async function(){
+    assert(this.token, 'Token address couldn\'t be stored')
+  });
+
+  /**
+   * 0.007eth == 1 CryptoBean (2.60e at time of writing)
+   */
+  describe('purchasing cryptoBean\'s', function(){
+    it('will 150 cryptoBean for 1eth', async function(){
+      const increase = await purchase(accounts[7], 1, this.crowdsale);
+      assert.equal(increase, 150, 'The sender didn\'t receive 150 cryptoBeans for 1ETH');
     });
 
-    /**
-     * 400e = 1eth
-     * 2.75e = 1 coffee
-     * 400e = 145.55555 coffee's
-     * --- round down ---
-     * 1eth = 150 coffees
-     * 0.006666667eth = 1 coffee
-     * 0.007eth == 1 CryptoBean (2.60e at time of writing)
-     */
-    it('will 150 cryptoBean for 0.007eth', function(done){
-      CryptoBeanCrowdsale.deployed().then(async function(instance){
-        const tokenAddress = await instance.token.call();
-        const cryptoBean = CryptoBean.at(tokenAddress);
-        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
-
-        try{
-          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(1, "ether"), gas: 4000000});
-        }catch(e){
-          return done(e);
-        }
-
-        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
-          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
-        assert.equal(increaseAmount, 150, 'The sender didn\'t receive 150 cryptoBeans for 1ETH');
-        done();
-      });
-    });
-
-    it('will get 1.125 cryptoBeans for 0.0075eth', function(done){
-      CryptoBeanCrowdsale.deployed().then(async function(instance){
-        const tokenAddress = await instance.token.call();
-        const cryptoBean = CryptoBean.at(tokenAddress);
-        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
-
-        try{
-          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.0075, "ether"), gas: 4000000});
-        }catch(e){
-          return done(e);
-        }
-
-        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
-          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
-        assert.equal(increaseAmount, 1.125, 'The sender didn\'t receive 151.125 cryptoBeans');
-        done();
-      });
+    it('will get 1.125 cryptoBeans for 0.0075eth', async function(){
+      const increase = await purchase(accounts[7], 0.0075, this.crowdsale);
+      assert.equal(increase, 1.125, 'The sender didn\'t receive 1.125 cryptoBeans');
     })
 
-    it('will get 1 cryptoBean for 0.007 eth', function(done){
-      CryptoBeanCrowdsale.deployed().then(async function(instance){
-        const tokenAddress = await instance.token.call();
-        const cryptoBean = CryptoBean.at(tokenAddress);
-        const previousAmount = await cryptoBean.balanceOf(accounts[7]);
-
-        try{
-          const data = await instance.buyTokens(accounts[7], { from: accounts[7], value: web3.toWei(0.0066666667, "ether"), gas: 4000000});
-        }catch(e){
-          return done(e);
-        }
-
-        const tokenAmount = await cryptoBean.balanceOf(accounts[7]),
-          increaseAmount = web3.fromWei(tokenAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
-        assert.equal(increaseAmount, 1.000000005000004, 'The sender didn\'t receive 1 cryptoBean');
-        done();
-      });
+    it('will get 1.00. cryptoBean for 0.007 eth', async function(){
+      const increase = await purchase(accounts[7], 0.0066666667, this.crowdsale);
+      assert.equal(increase, 1.000000005000004, 'The sender didn\'t receive 1.000000005000004 cryptoBeans');
     });
-
-    //
-    // it('should set stage to PreICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //       await instance.setCrowdsaleStage(0);
-    //       const stage = await instance.stage.call();
-    //       assert.equal(stage.toNumber(), 0, 'The stage couldn\'t be set to PreICO');
-    //       done();
-    //    });
-    // });
-    //
-    // it('one ETH should buy 5 Hashnode Tokens in PreICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         const data = await instance.sendTransaction({ from: accounts[7], value: web3.toWei(1, "ether")});
-    //         const tokenAddress = await instance.token.call();
-    //         const hashnodeToken = HashnodeToken.at(tokenAddress);
-    //         const tokenAmount = await hashnodeToken.balanceOf(accounts[7]);
-    //         assert.equal(tokenAmount.toNumber(), 5000000000000000000, 'The sender didn\'t receive the tokens as per PreICO rate');
-    //         done();
-    //    });
-    // });
-    //
-    // it('should transfer the ETH to wallet immediately in Pre ICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         let balanceOfBeneficiary = await web3.eth.getBalance(accounts[9]);
-    //         balanceOfBeneficiary = Number(balanceOfBeneficiary.toString(10));
-    //
-    //         await instance.sendTransaction({ from: accounts[1], value: web3.toWei(2, "ether")});
-    //
-    //         let newBalanceOfBeneficiary = await web3.eth.getBalance(accounts[9]);
-    //         newBalanceOfBeneficiary = Number(newBalanceOfBeneficiary.toString(10));
-    //
-    //         assert.equal(newBalanceOfBeneficiary, balanceOfBeneficiary + 2000000000000000000, 'ETH couldn\'t be transferred to the beneficiary');
-    //         done();
-    //    });
-    // });
-    //
-    // it('should set variable `totalWeiRaisedDuringPreICO` correctly', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         var amount = await instance.totalWeiRaisedDuringPreICO.call();
-    //         assert.equal(amount.toNumber(), web3.toWei(3, "ether"), 'Total ETH raised in PreICO was not calculated correctly');
-    //         done();
-    //    });
-    // });
-    //
-    // it('should set stage to ICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //       await instance.setCrowdsaleStage(1);
-    //       const stage = await instance.stage.call();
-    //       assert.equal(stage.toNumber(), 1, 'The stage couldn\'t be set to ICO');
-    //       done();
-    //    });
-    // });
-    //
-    // it('one ETH should buy 2 Hashnode Tokens in ICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         const data = await instance.sendTransaction({ from: accounts[2], value: web3.toWei(1.5, "ether")});
-    //         const tokenAddress = await instance.token.call();
-    //         const hashnodeToken = HashnodeToken.at(tokenAddress);
-    //         const tokenAmount = await hashnodeToken.balanceOf(accounts[2]);
-    //         assert.equal(tokenAmount.toNumber(), 3000000000000000000, 'The sender didn\'t receive the tokens as per ICO rate');
-    //         done();
-    //    });
-    // });
-    //
-    // it('should transfer the raised ETH to RefundVault during ICO', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         var vaultAddress = await instance.vault.call();
-    //
-    //         let balance = await web3.eth.getBalance(vaultAddress);
-    //
-    //         assert.equal(balance.toNumber(), 1500000000000000000, 'ETH couldn\'t be transferred to the vault');
-    //         done();
-    //    });
-    // });
-    //
-    // it('Vault balance should be added to our wallet once ICO is over', function(done){
-    //     HashnodeCrowdsale.deployed().then(async function(instance) {
-    //         let balanceOfBeneficiary = await web3.eth.getBalance(accounts[9]);
-    //         balanceOfBeneficiary = balanceOfBeneficiary.toNumber();
-    //
-    //         var vaultAddress = await instance.vault.call();
-    //         let vaultBalance = await web3.eth.getBalance(vaultAddress);
-    //
-    //         await instance.finish(accounts[0], accounts[1], accounts[2]);
-    //
-    //         let newBalanceOfBeneficiary = await web3.eth.getBalance(accounts[9]);
-    //         newBalanceOfBeneficiary = newBalanceOfBeneficiary.toNumber();
-    //
-    //         assert.equal(newBalanceOfBeneficiary, balanceOfBeneficiary + vaultBalance.toNumber(), 'Vault balance couldn\'t be sent to the wallet');
-    //         done();
-    //    });
-    // });
+  });
 });
+
+/**
+ * Purchase tokens.
+ * @helper
+ * @param  {String} purchaser Purchaser address.
+ * @param  {Integer} amount    The amount in ETH.
+ * @param  {TruffleContract} crowdsale The crowdsale instance.
+ * @return {Integer}           The amount cryptoBeans bought.
+ */
+async function purchase(purchaser, amount, crowdsale){
+  this.token = CryptoBean.at(await crowdsale.token.call());
+  const previousAmount = await this.token.balanceOf(purchaser);
+  await crowdsale.buyTokens(purchaser, { from: purchaser, value: web3.toWei(amount, "ether"), gas: 4000000});
+  const newAmount = await this.token.balanceOf(purchaser);
+
+  return web3.fromWei(newAmount.toNumber(), "ether") - web3.fromWei(previousAmount.toNumber(), "ether");
+}
